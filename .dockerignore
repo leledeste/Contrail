@@ -1,0 +1,17 @@
+node_modules/
+.git/
+.agents/
+.contrail-relay/
+config.json
+apps/relay/.env
+infra/docker/.env
+*.log
+voice-dumps/
+tx-inspect/
+backup*/
+backups/
+tmp/
+temp/
+dist/
+build/
+release/

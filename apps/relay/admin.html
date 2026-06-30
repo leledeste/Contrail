@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contrail Relay Admin</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d1117;
+      --panel: #151b24;
+      --panel-2: #101720;
+      --line: #2b3543;
+      --text: #e7eef8;
+      --muted: #93a4b8;
+      --accent: #45d6b5;
+      --danger: #ff6b6b;
+      --warning: #e8be5b;
+      --button: #1f2a38;
+      --button-hover: #29384a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, Segoe UI, system-ui, sans-serif;
+      font-size: 14px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: #0f151e;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+    }
+
+    section {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: 8px;
+    }
+
+    .panel-body {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    h2 {
+      margin: 0;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 0 10px;
+      font: inherit;
+    }
+
+    button {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--button);
+      color: var(--text);
+      padding: 0 12px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--button-hover);
+    }
+
+    button.primary {
+      border-color: rgba(69, 214, 181, 0.4);
+      background: #163b35;
+    }
+
+    button.danger {
+      border-color: rgba(255, 107, 107, 0.45);
+      background: #3b1c22;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status.ok {
+      color: var(--accent);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.warning {
+      color: var(--warning);
+    }
+
+    .token-box {
+      display: none;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      border: 1px solid rgba(69, 214, 181, 0.35);
+      border-radius: 6px;
+      background: #0b231f;
+      padding: 10px;
+      color: var(--accent);
+      font-family: Consolas, ui-monospace, monospace;
+      font-size: 13px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      background: #111923;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 0 8px;
+      background: #1b2634;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pill.active {
+      background: #123d34;
+      color: var(--accent);
+    }
+
+    .pill.disabled {
+      background: #3c2227;
+      color: var(--danger);
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Contrail Relay Admin</h1>
+    <div id="topStatus" class="status">Disconnected</div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Access</h2>
+      <div class="panel-body">
+        <label>
+          Admin token
+          <input id="adminToken" type="password" autocomplete="current-password" placeholder="CONTRAIL_RELAY_ADMIN_TOKEN">
+        </label>
+        <div class="row">
+          <button id="saveToken" class="primary">Connect</button>
+          <button id="forgetToken">Forget</button>
+        </div>
+        <div id="accessStatus" class="status">Set CONTRAIL_RELAY_ADMIN_TOKEN on the relay, then connect.</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Create User</h2>
+      <div class="panel-body">
+        <label>
+          User id
+          <input id="newUserId" spellcheck="false" placeholder="daniele">
+        </label>
+        <label>
+          Display name
+          <input id="newDisplayName" spellcheck="false" placeholder="Daniele">
+        </label>
+        <button id="createUser" class="primary">Create User</button>
+        <div id="tokenBox" class="token-box"></div>
+      </div>
+    </section>
+
+    <section style="grid-column: 1 / -1;">
+      <h2>Users</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Tokens</th>
+              <th>Active prefixes</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr><td colspan="6" class="status">Connect with an admin token.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section style="grid-column: 1 / -1;">
+      <h2>Devices</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Device</th>
+              <th>Status</th>
+              <th>Pairings</th>
+              <th>Last seen</th>
+            </tr>
+          </thead>
+          <tbody id="devicesBody">
+            <tr><td colspan="5" class="status">Connect with an admin token.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section style="grid-column: 1 / -1;">
+      <h2>Browser Pairings</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Device</th>
+              <th>Browser</th>
+              <th>Status</th>
+              <th>Last used</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="pairingsBody">
+            <tr><td colspan="6" class="status">Connect with an admin token.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section style="grid-column: 1 / -1;">
+      <h2>Audit</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>User</th>
+              <th>Actor</th>
+              <th>Target</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody id="auditBody">
+            <tr><td colspan="6" class="status">Connect with an admin token.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const tokenInput = document.getElementById('adminToken');
+    const saveTokenButton = document.getElementById('saveToken');
+    const forgetTokenButton = document.getElementById('forgetToken');
+    const createUserButton = document.getElementById('createUser');
+    const usersBody = document.getElementById('usersBody');
+    const devicesBody = document.getElementById('devicesBody');
+    const pairingsBody = document.getElementById('pairingsBody');
+    const auditBody = document.getElementById('auditBody');
+    const topStatus = document.getElementById('topStatus');
+    const accessStatus = document.getElementById('accessStatus');
+    const tokenBox = document.getElementById('tokenBox');
+    const newUserId = document.getElementById('newUserId');
+    const newDisplayName = document.getElementById('newDisplayName');
+
+    let adminToken = localStorage.getItem('contrail.relay.adminToken') || '';
+    tokenInput.value = adminToken;
+
+    saveTokenButton.addEventListener('click', () => {
+      adminToken = tokenInput.value.trim();
+      if (adminToken) localStorage.setItem('contrail.relay.adminToken', adminToken);
+      loadAdmin();
+    });
+
+    forgetTokenButton.addEventListener('click', () => {
+      adminToken = '';
+      tokenInput.value = '';
+      localStorage.removeItem('contrail.relay.adminToken');
+      setStatus('Admin token removed.', 'warning');
+      renderUsers([]);
+      renderDevices([]);
+      renderPairings([]);
+      renderAudit([]);
+      hideToken();
+    });
+
+    createUserButton.addEventListener('click', async () => {
+      const userId = newUserId.value.trim();
+      const displayName = newDisplayName.value.trim();
+      const response = await api('/admin/api/users', {
+        method: 'POST',
+        body: JSON.stringify({ userId, displayName }),
+      });
+      showToken(response.userId, response.token);
+      newUserId.value = '';
+      newDisplayName.value = '';
+      await loadAdminData();
+    });
+
+    if (adminToken) loadAdmin();
+
+    async function loadAdmin() {
+      try {
+        const status = await api('/admin/api/status');
+        if (!status.sqliteAdmin) {
+          setStatus(`Connected. Mode: ${status.authMode}. SQLite admin is disabled.`, 'warning');
+          renderUsers([]);
+          renderDevices([]);
+          renderPairings([]);
+          renderAudit([]);
+          return;
+        }
+        setStatus(`Connected. Mode: ${status.authMode}. Users: ${status.users}.`, 'ok');
+        await loadAdminData();
+      } catch (err) {
+        setStatus(err.message, 'error');
+      }
+    }
+
+    async function loadAdminData() {
+      await Promise.all([loadUsers(), loadDevices(), loadPairings(), loadAudit()]);
+    }
+
+    async function loadUsers() {
+      const data = await api('/admin/api/users');
+      renderUsers(data.users || []);
+    }
+
+    async function loadDevices() {
+      const data = await api('/admin/api/devices');
+      renderDevices(data.devices || []);
+    }
+
+    async function loadPairings() {
+      const data = await api('/admin/api/pairings');
+      renderPairings(data.pairings || []);
+    }
+
+    async function loadAudit() {
+      const data = await api('/admin/api/audit');
+      renderAudit(data.events || []);
+    }
+
+    function renderUsers(users) {
+      if (!users.length) {
+        usersBody.innerHTML = '<tr><td colspan="6" class="status">No SQLite users found.</td></tr>';
+        return;
+      }
+
+      usersBody.innerHTML = users.map((user) => {
+        const disabled = Boolean(user.disabledAt);
+        const statusClass = disabled ? 'disabled' : 'active';
+        const statusText = disabled ? 'Disabled' : 'Active';
+        const prefixes = (user.activeTokenPrefixes || []).join(', ') || '-';
+        const tokenText = `${user.activeTokenCount || 0}/${user.tokenCount || 0}`;
+        return `
+          <tr>
+            <td><strong>${escapeHtml(user.userId)}</strong></td>
+            <td>${escapeHtml(user.displayName || user.userId)}</td>
+            <td><span class="pill ${statusClass}">${statusText}</span></td>
+            <td>${escapeHtml(tokenText)}</td>
+            <td>${escapeHtml(prefixes)}</td>
+            <td>
+              <div class="actions">
+                <button data-action="rotate" data-user="${escapeAttr(user.userId)}">Rotate</button>
+                <button data-action="revoke" data-user="${escapeAttr(user.userId)}" class="danger">Revoke</button>
+                <button data-action="${disabled ? 'enable' : 'disable'}" data-user="${escapeAttr(user.userId)}">${disabled ? 'Enable' : 'Disable'}</button>
+                <button data-action="delete" data-user="${escapeAttr(user.userId)}" class="danger">Delete</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join('');
+
+      usersBody.querySelectorAll('button[data-action]').forEach((button) => {
+        button.addEventListener('click', () => runUserAction(button.dataset.user, button.dataset.action));
+      });
+    }
+
+    function renderDevices(devices) {
+      if (!devices.length) {
+        devicesBody.innerHTML = '<tr><td colspan="5" class="status">No devices have connected yet.</td></tr>';
+        return;
+      }
+
+      devicesBody.innerHTML = devices.map((device) => `
+        <tr>
+          <td><strong>${escapeHtml(device.userId)}</strong></td>
+          <td>${escapeHtml(device.deviceName || device.deviceId)}<br><span class="status">${escapeHtml(device.deviceId)}</span></td>
+          <td><span class="pill ${device.online ? 'active' : ''}">${device.online ? 'Online' : 'Offline'}</span></td>
+          <td>${escapeHtml(device.activePairingCount || 0)}</td>
+          <td>${escapeHtml(formatDate(device.lastSeenAt || device.firstSeenAt))}</td>
+        </tr>`).join('');
+    }
+
+    function renderPairings(pairings) {
+      if (!pairings.length) {
+        pairingsBody.innerHTML = '<tr><td colspan="6" class="status">No active browser pairings.</td></tr>';
+        return;
+      }
+
+      pairingsBody.innerHTML = pairings.map((pairing) => `
+        <tr>
+          <td><strong>${escapeHtml(pairing.userId)}</strong></td>
+          <td>${escapeHtml(pairing.deviceName || pairing.deviceId)}<br><span class="status">${escapeHtml(pairing.deviceId)}</span></td>
+          <td>${escapeHtml(pairing.browserLabel || pairing.browserHashPrefix)}</td>
+          <td><span class="pill ${pairing.online ? 'active' : ''}">${pairing.online ? 'Device online' : 'Device offline'}</span></td>
+          <td>${escapeHtml(formatDate(pairing.lastUsedAt || pairing.createdAt))}</td>
+          <td>
+            <div class="actions">
+              <button data-pairing-action="revoke" data-pairing="${escapeAttr(pairing.pairingId)}" class="danger">Revoke</button>
+            </div>
+          </td>
+        </tr>`).join('');
+
+      pairingsBody.querySelectorAll('button[data-pairing-action]').forEach((button) => {
+        button.addEventListener('click', () => runPairingAction(button.dataset.pairing, button.dataset.pairingAction));
+      });
+    }
+
+    function renderAudit(events) {
+      if (!events.length) {
+        auditBody.innerHTML = '<tr><td colspan="6" class="status">No audit events yet.</td></tr>';
+        return;
+      }
+
+      auditBody.innerHTML = events.map((event) => {
+        const metadata = event.metadata || {};
+        const target = event.targetAgentId || metadata.targetUserId || metadata.deviceId || event.targetBrowserPairingId || '-';
+        const actor = `${event.actorType || '-'}${event.actorId ? ` / ${event.actorId}` : ''}`;
+        return `
+          <tr>
+            <td>${escapeHtml(formatDate(event.createdAt))}</td>
+            <td><strong>${escapeHtml(event.eventType)}</strong></td>
+            <td>${escapeHtml(event.userId || metadata.targetUserId || '-')}</td>
+            <td>${escapeHtml(actor)}</td>
+            <td>${escapeHtml(target)}</td>
+            <td>${escapeHtml(event.ipAddress || '-')}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    async function runUserAction(userId, action) {
+      if (action === 'delete' && !confirm(`Delete ${userId} permanently? This cannot be undone.`)) return;
+      if ((action === 'revoke' || action === 'disable') && !confirm(`${action} ${userId}?`)) return;
+      const response = await api(`/admin/api/users/${encodeURIComponent(userId)}/${action}`, { method: 'POST' });
+      if (response.token) showToken(response.userId, response.token);
+      else hideToken();
+      await loadAdminData();
+    }
+
+    async function runPairingAction(pairingId, action) {
+      if (action !== 'revoke') return;
+      if (!confirm('Revoke this browser pairing?')) return;
+      await api(`/admin/api/pairings/${encodeURIComponent(pairingId)}/revoke`, { method: 'POST' });
+      await loadAdminData();
+    }
+
+    async function api(path, options = {}) {
+      if (!adminToken) throw new Error('Admin token is required.');
+      const response = await fetch(path, {
+        ...options,
+        headers: {
+          'authorization': `Bearer ${adminToken}`,
+          'content-type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+      const data = await response.json().catch(() => ({ ok: false, error: 'invalid response' }));
+      if (!response.ok || data.ok === false) throw new Error(data.error || `Request failed: ${response.status}`);
+      return data;
+    }
+
+    function showToken(userId, token) {
+      tokenBox.style.display = 'block';
+      tokenBox.textContent = `Token shown once for ${userId}:\n${token}`;
+    }
+
+    function hideToken() {
+      tokenBox.style.display = 'none';
+      tokenBox.textContent = '';
+    }
+
+    function setStatus(message, kind) {
+      topStatus.textContent = message;
+      accessStatus.textContent = message;
+      topStatus.className = `status ${kind || ''}`;
+      accessStatus.className = `status ${kind || ''}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, '&#96;');
+    }
+
+    function formatDate(value) {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      return date.toLocaleString();
+    }
+  </script>
+</body>
+</html>

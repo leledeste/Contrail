@@ -1,0 +1,38 @@
+services:
+  contrail-relay:
+    build:
+      context: ../..
+      dockerfile: infra/docker/relay.Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      CONTRAIL_RELAY_HOST: 0.0.0.0
+      CONTRAIL_RELAY_PORT: 8787
+      CONTRAIL_RELAY_DATA_DIR: /var/lib/contrail-relay
+      CONTRAIL_RELAY_PAIRINGS_FILE: /var/lib/contrail-relay/pairings.json
+    volumes:
+      - relay-data:/var/lib/contrail-relay
+    expose:
+      - "8787"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - contrail-relay
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../../webapp:/srv/contrail-webapp:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  relay-data:
+  caddy-data:
+  caddy-config:

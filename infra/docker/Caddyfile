@@ -1,0 +1,30 @@
+{
+  email {$CADDY_ACME_EMAIL}
+}
+
+{$RELAY_DOMAIN} {
+  encode zstd gzip
+
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy no-referrer
+  }
+
+  reverse_proxy contrail-relay:8787
+}
+
+{$WEBAPP_DOMAIN} {
+  encode zstd gzip
+
+  root * /srv/contrail-webapp
+  try_files {path} /index.html
+  file_server
+
+  @html path / /index.html
+  header @html Cache-Control "no-store"
+
+  header {
+    X-Content-Type-Options nosniff
+    Referrer-Policy no-referrer
+  }
+}

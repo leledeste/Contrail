@@ -1,0 +1,868 @@
+/* Design tokens: all colors and shared effects stay here so the interface
+   can be adjusted without hunting through individual components. */
+:root {
+  --bg: #0d1117;
+  --panel: #151b23;
+  --panel-2: #1b2430;
+  --line: #2b3442;
+  --text: #e8edf2;
+  --muted: #9aa6b2;
+  --green: #2bd576;
+  --red: #ff5f57;
+  --amber: #ffcc66;
+  --blue: #5aa7ff;
+  --cyan: #60e0d4;
+  --shadow: 0 18px 50px rgba(0, 0, 0, .28);
+}
+
+* { box-sizing: border-box; }
+.hidden { display: none !important; }
+
+/* The page is a fixed application viewport. Scrolling is intentionally
+   delegated to the sidebar and message list so header/sidebar stay usable. */
+body {
+  margin: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+
+/* Base form controls are intentionally compact because the app is used next
+   to a simulator, often in a reduced window. */
+button, input, select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  border-radius: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+button:hover { border-color: #46566b; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+input, select {
+  border: 1px solid var(--line);
+  background: #0f141b;
+  border-radius: 6px;
+  min-height: 38px;
+  padding: 0 10px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(90, 167, 255, .12);
+}
+
+/* App shell: header, main work area, and composer. */
+.app {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: hidden;
+}
+
+/* Top status bar. It is kept outside scroll containers so connection state
+   remains visible even while reading long chat history. */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  background: #10161f;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  color: #07120d;
+  background: var(--green);
+  font-weight: 800;
+  font-size: 20px;
+}
+
+.title {
+  font-weight: 800;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #0f141b;
+  font-size: 13px;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 0 4px rgba(255, 95, 87, .1);
+}
+
+.dot.online {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(43, 213, 118, .12);
+}
+
+.settings-button {
+  min-height: 32px;
+  padding: 0 11px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* The left column owns radio tuning and XPDR controls. It can scroll
+   independently when the window is short. */
+main {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.side {
+  min-height: 0;
+  border-right: 1px solid var(--line);
+  background: #111720;
+  padding: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.work {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: #0d1117;
+  overflow: hidden;
+}
+
+.section {
+  margin-bottom: 12px;
+}
+
+.section-title {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+/* Radio rows use a stable grid so COM labels, manual input, TX buttons,
+   and station drop-downs do not resize the layout while data arrives. */
+.radio {
+  display: grid;
+  grid-template-columns: 54px minmax(96px, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.radio-name {
+  color: var(--cyan);
+  font-weight: 800;
+}
+
+.radio-freq {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+.radio input { width: 100%; }
+
+.station-select {
+  grid-column: 1 / 4;
+  width: 100%;
+}
+
+/* Transponder controls intentionally mirror PilotUI's simple XPDR block:
+   one squawk field, one STBY/ALT mode switch, and a momentary IDENT lamp. */
+.xpdr-panel {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) minmax(120px, 1.2fr) auto;
+  gap: 8px;
+  align-items: stretch;
+  padding: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+}
+
+.xpdr-code {
+  width: 100%;
+  min-height: 48px;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  letter-spacing: 0;
+}
+
+.xpdr-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #0f141b;
+}
+
+.xpdr-mode button {
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.xpdr-mode button.active {
+  background: var(--green);
+  color: #07120d;
+}
+
+.xpdr-mode button.stby.active {
+  background: #323b47;
+  color: #fff;
+}
+
+.xpdr-ident {
+  min-width: 64px;
+  min-height: 48px;
+  font-weight: 800;
+}
+
+.xpdr-ident.active {
+  background: var(--red);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 0 4px rgba(255, 95, 87, .16);
+}
+
+.tx-button.active {
+  background: var(--red);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 0 4px rgba(255, 95, 87, .15);
+}
+
+.tx-button {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.rx-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  height: 30px;
+  border-radius: 999px;
+  background: #10161f;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.rx-light.active {
+  color: #06110c;
+  background: var(--green);
+  border-color: transparent;
+}
+
+.voice-status {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: #0f141b;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.radio-webtx-status {
+  margin: 2px 0 0;
+}
+
+.voice-status.ready {
+  color: #bdf7d5;
+  border-color: rgba(43, 213, 118, .35);
+  background: rgba(43, 213, 118, .08);
+}
+
+.voice-status.warning {
+  color: #ffe1a3;
+  border-color: rgba(255, 204, 102, .35);
+  background: rgba(255, 204, 102, .08);
+}
+
+.voice-status.waiting {
+  animation: webtx-waiting 4.8s ease-in-out infinite;
+}
+
+@keyframes webtx-waiting {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 204, 102, 0);
+    transform: none;
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(255, 204, 102, .14);
+    transform: translateY(-1px);
+  }
+}
+
+.empty {
+  color: var(--muted);
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Chat work area: toolbar stays static, only .messages scrolls. */
+.toolbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: #10161f;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab.active {
+  border-color: var(--blue);
+  background: rgba(90, 167, 255, .14);
+  color: #cfe5ff;
+}
+
+.tab.private-peer-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cyan);
+}
+
+.tab.private-peer-tab.unread {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.tab-close {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.tab-close:hover {
+  color: #07120d;
+  background: var(--amber);
+}
+
+/* Messages are a vertical stream; outgoing messages align right so private
+   conversations remain readable without extra labels. */
+.messages {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 860px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .12);
+}
+
+.msg.outgoing {
+  align-self: flex-end;
+  background: #122033;
+  border-color: #254669;
+}
+
+.msg.system {
+  background: #171a20;
+  color: var(--muted);
+}
+
+.msg.fading {
+  animation: message-fade-out 1s ease forwards;
+}
+
+@keyframes message-fade-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.msg-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.msg-from {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.msg-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+/* The composer is always visible. Commands and normal chat share one input
+   because they both become simple proxy actions. */
+.composer {
+  display: grid;
+  grid-template-columns: minmax(92px, 150px) 1fr auto;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+  background: #10161f;
+  position: relative;
+  z-index: 12;
+}
+
+.composer-field {
+  position: relative;
+  min-width: 0;
+}
+
+.composer input { width: 100%; }
+
+.command-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  max-height: min(320px, 48dvh);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f141b;
+  box-shadow: var(--shadow);
+  padding: 4px;
+  z-index: 25;
+}
+
+.command-menu.hidden { display: none; }
+
+.command-option {
+  width: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: minmax(84px, 128px) minmax(0, 1fr);
+  gap: 8px;
+  text-align: left;
+}
+
+.command-option:hover,
+.command-option.active {
+  background: rgba(90, 167, 255, .14);
+}
+
+.command-name {
+  color: var(--cyan);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.command-detail {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.command-args {
+  color: #cfe5ff;
+}
+
+.send {
+  background: var(--green);
+  color: #07120d;
+  border-color: transparent;
+  font-weight: 800;
+}
+
+/* Overlay is not a fatal error screen: it tells the user which side of the
+   chain is missing while the page can still reconnect in the background. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 8, 12, .72);
+  backdrop-filter: blur(8px);
+  z-index: 20;
+  padding: 18px;
+}
+
+.overlay.hidden { display: none; }
+
+.dialog {
+  width: min(480px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.dialog h1 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.dialog p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dialog code {
+  color: var(--cyan);
+  background: #0f141b;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+
+/* Hosted mode starts from this account gate instead of burying login inside
+   Settings. Manual relay/token setup remains available for self-host tests. */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 28;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(5, 8, 12, .76);
+  backdrop-filter: blur(8px);
+}
+
+.auth-overlay.hidden { display: none; }
+
+.auth-panel {
+  width: min(540px, 100%);
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.auth-panel h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.auth-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.auth-form {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-form label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.auth-form input {
+  width: 100%;
+  text-transform: none;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.auth-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.auth-actions .wide {
+  grid-column: 1 / -1;
+}
+
+.auth-status {
+  min-height: 20px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.auth-status.good { color: #bdf7d5; }
+.auth-status.bad { color: #ffb4b4; }
+
+.agent-token-box {
+  border: 1px solid rgba(69, 214, 181, 0.35);
+  border-radius: 6px;
+  background: #0b231f;
+  color: var(--cyan);
+  padding: 10px;
+  overflow-wrap: anywhere;
+  font-family: Consolas, ui-monospace, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* Settings is a modal workbench for diagnostics and setup details. Keeping
+   it out of the sidebar preserves the main radio workflow. */
+.settings-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(5, 8, 12, .72);
+  backdrop-filter: blur(8px);
+}
+
+.settings-modal.hidden { display: none; }
+
+.settings-panel {
+  width: min(760px, 100%);
+  max-height: min(720px, 92dvh);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.settings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: #10161f;
+}
+
+.settings-tab.active {
+  border-color: var(--blue);
+  background: rgba(90, 167, 255, .14);
+  color: #cfe5ff;
+}
+
+.settings-body {
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+}
+
+.settings-page.hidden { display: none; }
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.setting-row {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0f141b;
+}
+
+.setting-label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.setting-value {
+  min-height: 22px;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.setting-value.good { color: #bdf7d5; }
+.setting-value.warning { color: #ffe1a3; }
+.setting-value.bad { color: #ffb4b4; }
+
+.settings-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.settings-form label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.settings-form input,
+.settings-form select {
+  width: 100%;
+  text-transform: none;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.settings-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Narrow windows stack the radio panel above chat instead of forcing a
+   horizontal scroll. */
+@media (max-width: 1040px) {
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(160px, 34dvh) minmax(0, 1fr);
+  }
+  .side { border-right: 0; border-bottom: 1px solid var(--line); }
+  .topbar { align-items: flex-start; }
+  .composer { grid-template-columns: 1fr; }
+  .radio { grid-template-columns: 58px 1fr; }
+  .radio button { grid-column: span 1; }
+  .station-select { grid-column: 1 / 3; }
+  .xpdr-panel { grid-template-columns: minmax(96px, 1fr) minmax(120px, 1fr) auto; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .settings-actions { grid-template-columns: 1fr; }
+  .auth-actions { grid-template-columns: 1fr; }
+}
+
+/* Short windows reduce spacing and control height so the app stays usable
+   beside a simulator without requiring fullscreen. */
+@media (max-height: 760px) {
+  .topbar { padding: 8px 12px; }
+  .mark { width: 34px; height: 34px; font-size: 17px; }
+  .title { font-size: 20px; }
+  button, input, select { min-height: 34px; }
+  .radio { gap: 6px; padding: 6px; }
+  .section-title { margin-bottom: 6px; }
+  .msg { padding: 8px 10px; }
+}
